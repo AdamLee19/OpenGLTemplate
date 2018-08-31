@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include "View.h"
 
 
 
@@ -13,30 +14,32 @@ const GLFWvidmode* mode = NULL;
 GLFWmonitor* monitor = NULL;
 const char *WINDOWTITLE = {"OpenGL/Template"};
 
+View Object;
 
-enum VAO_IDs { Triangles, NumVAOs };
-enum Buffer_IDs { ArrayBuffer, NumBuffers };
 
-GLuint VAOs[ NumVAOs ];
-GLuint Buffers[ NumBuffers ];
+// enum VAO_IDs { Triangles, NumVAOs };
+// enum Buffer_IDs { ArrayBuffer, NumBuffers };
 
-const GLfloat points[] = { 0.0f, 0.5f, 0.0f, 0.5f, -0.5f, 0.0f, -0.5f, -0.5f, 0.0f };
-GLuint vert_shader, frag_shader;
-	/* GL shader programme object [combined, to link] */
-GLuint shader_programme;
+// GLuint VAOs[ NumVAOs ];
+// GLuint Buffers[ NumBuffers ];
 
-const char *vertex_shader = "#version 410\n"
-"in vec3 vp;"
-"void main () {"
-"  gl_Position = vec4 (vp, 1.0);"
-"}";
-	/* the fragment shader colours each fragment (pixel-sized area of the
-	triangle) */
-const char *fragment_shader = "#version 410\n"
-"out vec4 frag_colour;"
-"void main () {"
-"  frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
-"}";
+// const GLfloat points[] = { 0.0f, 0.5f, 0.0f, 0.5f, -0.5f, 0.0f, -0.5f, -0.5f, 0.0f };
+// GLuint vert_shader, frag_shader;
+// 	/* GL shader programme object [combined, to link] */
+// GLuint shader_programme;
+
+// const char *vertex_shader = "#version 410\n"
+// "in vec3 vp;"
+// "void main () {"
+// "  gl_Position = vec4 (vp, 1.0);"
+// "}";
+// 	/* the fragment shader colours each fragment (pixel-sized area of the
+// 	triangle) */
+// const char *fragment_shader = "#version 410\n"
+// "out vec4 frag_colour;"
+// "void main () {"
+// "  frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
+// "}";
 
 /*************
  
@@ -58,14 +61,14 @@ void window_size_callback(GLFWwindow* window, int width, int height);
 int main()
 {
 	InitGraph();
-	InitList();
+	Object.initList();
 	while( !glfwWindowShouldClose(window) )
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		
 		
-		Display();
+		Object.display();
 
 
 		//Callback Function
@@ -104,10 +107,8 @@ void InitGraph()
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-	glfwWindowHint(GLFW_DEPTH_BITS, GL_TRUE);
-	glfwWindowHint(GLFW_ALPHA_BITS, GL_TRUE);
-	window = glfwCreateWindow(mode->width, mode->height, WINDOWTITLE, NULL, NULL);
-	//window = glfwCreateWindow( 640, 480, "Hello Triangle", NULL, NULL );
+	window = glfwCreateWindow( Object.getWidth(), Object.getWidth(), WINDOWTITLE, NULL, NULL);
+
 
 	if( !window )
 	{
@@ -125,10 +126,10 @@ void InitGraph()
 	glEnable (GL_DEPTH_TEST); 
 	glDepthFunc (GL_LESS); 
 	glEnable (GL_CULL_FACE); 
-	glCullFace (GL_BACK); 
-	glFrontFace (GL_CW);
+	glCullFace (GL_FRONT); 
+	glFrontFace (GL_CCW);
 
-	glViewport(0, 0, mode->width, mode->height);
+
 
 	glClearColor( 0.5f,0.5f, 0.5f, 1.f );
 
@@ -136,33 +137,6 @@ void InitGraph()
 
 }
 
-
-void InitList()
-{
-	glGenBuffers( NumVAOs,Buffers );
-	glBindBuffer( GL_ARRAY_BUFFER, Buffers[ArrayBuffer] );
-	glBufferData( GL_ARRAY_BUFFER, 9 * sizeof( GLfloat ), points, GL_STATIC_DRAW );
-
-	glGenVertexArrays( NumVAOs, &VAOs[Triangles] );
-	glBindVertexArray( VAOs[Triangles] );
-
-	//Active VAO, Bind VBO to VAO
-	glEnableVertexAttribArray( Triangles );
-	glBindBuffer( GL_ARRAY_BUFFER, Buffers[ArrayBuffer] );
-	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL );
-	
-	vert_shader = glCreateShader( GL_VERTEX_SHADER );
-	glShaderSource( vert_shader, 1, &vertex_shader, NULL );
-	glCompileShader( vert_shader );
-	frag_shader = glCreateShader( GL_FRAGMENT_SHADER );
-	glShaderSource( frag_shader, 1, &fragment_shader, NULL );
-	glCompileShader( frag_shader );
-	shader_programme = glCreateProgram();
-	glAttachShader( shader_programme, frag_shader );
-	glAttachShader( shader_programme, vert_shader );
-	glLinkProgram( shader_programme );	
-	
-}
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -192,15 +166,9 @@ void mouse_move_callback(GLFWwindow* window, double xpos, double ypos)
 
 void window_size_callback(GLFWwindow* window, int width, int height)
 {
-	//std::cout << width << "," << height << std::endl;
-	//glViewport(0, 0, width, height);
+	Object.reshapeWindow( width, height );
 }
 
 
 
-void Display()
-{
-	glUseProgram( shader_programme );
-	glBindVertexArray(VAOs[Triangles]);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-}
+
