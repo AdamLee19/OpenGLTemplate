@@ -1,6 +1,4 @@
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 
 #ifndef __CAMERA_H__
@@ -18,8 +16,28 @@ private:
   	glm::vec3 Up;
   	glm::vec3 Forward;
   	glm::vec3 Right;
+
+
+  	double oldX;
+  	double oldY;
+
+  	bool rotateOn;
+
+  	const float fovy;
+  	const float znear;
+  	const float zfar;
+
 public:
 	Camera();
+	glm::vec3 getPos() const { return Pos;}
+	glm::vec3 getForw() const { return Forward;}
+	glm::vec3 getUp() const { return Up;}
+	float getFovy() const{ return fovy;}
+	float getZnear() const { return znear;}
+	float getZfar() const { return zfar;}
+	void handleMouseButtons(int button, int action, double x, double y);
+	void handleMouseMove( double x, double y );
+
 
 };
 

@@ -20,8 +20,9 @@ ${PROJECT}.o : ${PROJECT}.${CPP} Model.${H} View.${H}
 Model.o : Model.${CPP} Model.${H}
 	${CC} ${CPPFLAGS} -c Model.${CPP}
 
-View.o : View.${CPP} View.${H} Camera.${H}
+View.o : View.${CPP} View.${H} Camera.${H} Model.${H}
 	${CC} ${CPPFLAGS} -c View.${CPP}
+
 
 Camera.o : Camera.${CPP} Camera.${H}
 	${CC} ${CPPFLAGS} -c Camera.${CPP}
