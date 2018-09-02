@@ -29,6 +29,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void mouse_move_callback(GLFWwindow* window, double xpos, double ypos);
 void window_size_callback(GLFWwindow* window, int width, int height);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 
 
@@ -79,6 +80,7 @@ void InitGraph()
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+	
 
 	window = glfwCreateWindow( 1, 1, WINDOWTITLE, NULL, NULL);
 
@@ -100,6 +102,7 @@ void InitGraph()
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, mouse_move_callback);
 	glfwSetFramebufferSizeCallback(window, window_size_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 	glfwSetWindowSize( window, Object.getWidth(), Object.getHeight() );	
 	glfwSetWindowPos ( window, 0, 0);
@@ -108,10 +111,12 @@ void InitGraph()
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if ( glfwGetKey ( window, GLFW_KEY_C ) )
-       glClearColor( 1.f,0.5f, 0.5f, 1.f );
-
-
+    if ( glfwGetKey ( window, GLFW_KEY_Q ) )
+    {
+      	glfwDestroyWindow( window );
+		glfwTerminate();
+		exit(0);
+    }
 }
 
 
@@ -134,6 +139,11 @@ void mouse_move_callback(GLFWwindow* window, double xpos, double ypos)
 void window_size_callback(GLFWwindow* window, int width, int height)
 {
 	Object.reshapeWindow( width, height );
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	Object.handleMouseRoll( yoffset );
 }
 
 

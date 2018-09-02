@@ -27,6 +27,10 @@ private:
   	const float znear;
   	const float zfar;
 
+
+  	glm::vec3 KeyLightPos;
+
+
 public:
 	Camera();
 	glm::vec3 getPos() const { return Pos;}
@@ -37,6 +41,7 @@ public:
 	float getZfar() const { return zfar;}
 	void handleMouseButtons(int button, int action, double x, double y);
 	void handleMouseMove( double x, double y );
+	void handleMouseRoll( double y );
 
 
 };

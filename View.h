@@ -37,6 +37,7 @@ public:
 	void display();
 	void handleMouseButtons(int button, int action, double x, double y);
 	void handleMouseMove( double x, double y );
+	void handleMouseRoll( double y );
 	
 };
 

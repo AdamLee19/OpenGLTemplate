@@ -9,13 +9,12 @@
 
 
 
-enum VAO_IDs { Triangles, NumVAOs };
-enum Buffer_IDs { ArrayBuffer, NumBuffers };
+enum VAO_IDs { Teapot, NumVAOs };
+enum Buffer_IDs { PointBuffer, PointNormalBuffer, NumBuffers };
 
 GLuint VAOs[ NumVAOs ];
 GLuint Buffers[ NumBuffers ];
 
-const GLfloat points[] = { -0.5f, -0.5f, 0.0f,0.5f, -0.5f, 0.0f,0.0f,  0.5f, 0.0f};
                             
 GLuint shader_programme;
 
@@ -70,19 +69,27 @@ void View :: initList()
 	GLuint vertNum, fragNum;
 	const char*v = teapot.getVertShad();
 	const char*f = teapot.getFragShad();
-	std::cout << teapot.getPointCount() << std::endl;
+	
 
-	glGenBuffers( NumVAOs,Buffers );
-	glBindBuffer( GL_ARRAY_BUFFER, Buffers[ArrayBuffer] );
-	glBufferData( GL_ARRAY_BUFFER, teapot.getPointCount() * sizeof( float ), teapot.getPoints(), GL_STATIC_DRAW );
+	glGenBuffers( NumBuffers,Buffers );
+	glBindBuffer( GL_ARRAY_BUFFER, Buffers[PointBuffer] );
+	glBufferData( GL_ARRAY_BUFFER, teapot.getPointCount() * sizeof( float ) * 3, teapot.getPoints(), GL_STATIC_DRAW );
 
-	glGenVertexArrays( NumVAOs, &VAOs[Triangles] );
-	glBindVertexArray( VAOs[Triangles] );
+	glBindBuffer( GL_ARRAY_BUFFER, Buffers[PointNormalBuffer]);
+	glBufferData( GL_ARRAY_BUFFER, teapot.getPointCount() * sizeof( float ) * 3, teapot.getNormals(), GL_STATIC_DRAW );
+	
+
+	glGenVertexArrays( NumVAOs, &VAOs[Teapot] );
+	glBindVertexArray( VAOs[Teapot] );
 
 	//Active VAO, Bind VBO to VAO
-	glEnableVertexAttribArray( Triangles );
-	glBindBuffer( GL_ARRAY_BUFFER, Buffers[ArrayBuffer] );
-	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL );
+	glEnableVertexAttribArray( 0 );
+	glBindBuffer( GL_ARRAY_BUFFER, Buffers[PointBuffer] );
+	glVertexAttribPointer( PointBuffer, 3, GL_FLOAT, GL_FALSE, 0, NULL );
+	
+	glEnableVertexAttribArray( 1 );
+	glBindBuffer( GL_ARRAY_BUFFER, Buffers[PointNormalBuffer]);
+	glVertexAttribPointer( PointNormalBuffer, 3, GL_FLOAT, GL_TRUE, 0, NULL );
 
 	
 	vertNum = glCreateShader( GL_VERTEX_SHADER );
@@ -123,24 +130,40 @@ void View :: display()
 
 	glUseProgram( shader_programme );
 	proj =  glm::perspective(glm::radians(camera -> getFovy()), (float)CurrentWindow_W/(float)CurrentWindow_H, camera -> getZnear(), camera -> getZfar());
-	view = glm::lookAt( camera -> getPos(), camera -> getForw(), camera -> getUp() );
+	
+	//2nd prameter is actually look at a position. Not forward vector;
+	view = glm::lookAt( camera -> getPos(), camera -> getForw() + camera -> getPos(), camera -> getUp() );
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 
 	int view_mat_location = glGetUniformLocation (shader_programme, "view_mat");
 	int proj_mat_location = glGetUniformLocation (shader_programme, "proj_mat");
 	int model_mat_location = glGetUniformLocation (shader_programme, "model_mat");
+	int model_color = glGetUniformLocation (shader_programme, "color");
+	//std::cout << model_color << std::endl;
 
+	
 
 	//1 represents 1 matrix, GL_FALSE represents transpose
 	glUniformMatrix4fv (view_mat_location, 1, GL_FALSE,  glm::value_ptr(view));
 	glUniformMatrix4fv (proj_mat_location, 1, GL_FALSE,  glm::value_ptr(proj));
 	glUniformMatrix4fv (model_mat_location, 1, GL_FALSE,  glm::value_ptr(model));
 
-	
+	glUniform3fv ( model_color, 1, glm::value_ptr(teapot.getColor() ) );
+	//std::cout << teapot.getColor()[0] << std::endl;
+
+
+
+
 
 	glUseProgram( shader_programme );
-	glBindVertexArray(VAOs[Triangles]);
-	glDrawArrays(GL_TRIANGLES, 0, teapot.getPointCount());
+	glBindVertexArray(VAOs[Teapot]);
+	glDrawArrays(GL_TRIANGLES, 0, teapot.getPointCount() );
+
+
+	//std::cout <<  << std::endl;
+
+
+
 }
 
 void View :: handleMouseButtons(int button, int action, double x, double y)
@@ -152,3 +175,10 @@ void View :: handleMouseMove( double x, double y )
 {
 	camera -> handleMouseMove( x, y );
 }
+
+
+void View :: handleMouseRoll( double y )
+{
+	camera -> handleMouseRoll( y );
+}
+

@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/rotate_vector.hpp>
+#include <iostream>
+
 
 
 #define INITUP glm::vec3(0.0f, 1.0f, 0.0f)
@@ -57,18 +59,26 @@ void Camera :: handleMouseMove( double x, double y )
 		{
 			Pos =  glm::rotate(Pos, glm::radians(-dx*sensityvity), Up);
 			Forward =  glm::rotate(Forward, glm::radians(-dx*sensityvity), Up);
+			glm::normalize(Forward);
 			Right =  glm::rotate(Right, glm::radians(-dx*sensityvity), Up);
+			glm::normalize(Right);
 			
 		}
 		else
 		{
 			Pos =  glm::rotate(Pos, glm::radians(-dy*sensityvity), Right);
 			Forward = glm::rotate(Forward, glm::radians(-dy*sensityvity), Right);
+			glm::normalize(Forward);
 			Up =  glm::rotate(Up, glm::radians(-dy*sensityvity), Right);
+			glm::normalize(Up);
 
 		}
 	}
 }
 
+void Camera :: handleMouseRoll( double y )
+{
+	Pos = (Pos + Forward*((float)-y*0.4f) );
+}
 
 
