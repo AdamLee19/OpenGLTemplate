@@ -16,7 +16,7 @@ private:
     float *textCoords;
 	int pointCount;
 
-	glm::vec3 color;
+	glm::vec4 color;
 	
 	bool load_obj_file( const char *file_name );
 	bool loadShader();
@@ -29,7 +29,7 @@ public:
 	float* getPoints() const { return points; }
 	float* getNormals() const { return normals;}
 	int getPointCount() const {return pointCount;}
-	glm::vec3 getColor() const{ return color;}
+	glm::vec4 getColor() const{ return color;}
 };
 
 

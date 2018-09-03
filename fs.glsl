@@ -1,31 +1,58 @@
 #version 410
 
 
-out vec4 frag_colour;
-uniform  vec3 color;
+
+uniform vec4 model_color;
+uniform vec4 uKeyLightColor, uFillLightColor, uBackLightColor ;
+uniform vec3 uCamPos;
 
 in vec3 vNorm;
-in vec3 vLightvec;
+in vec3 vKeyLightNorm;
+in vec3 vFillLightNorm;
+in vec3 vBackLightNorm;
 in vec3 vPos;
 
-vec4 lightColor = vec4(1.0,0.8,0.7, 1.0);
-float ai = 0.1;
+
+out vec4 frag_color;
+
+float ambientStren = 0.1;
+float diffuseSten = 0.8;
+float specularSten = 0.5;
+
+vec4 phong( vec4 lightColor, vec3 lightVector, vec3 point, vec3 pointNorm, vec4 modelC, vec3 camPos );
 void main () {
 
-  	vec4 Ka = ai * lightColor;
+
+     vec4 keyPhong = phong( uKeyLightColor, vKeyLightNorm, vPos, vNorm, model_color, uCamPos );
+     vec4 fillPhong = phong( uFillLightColor, vFillLightNorm, vPos, vNorm, model_color, uCamPos );
+     vec4 backPhong = phong( uBackLightColor, vBackLightNorm, vPos, vNorm, model_color, uCamPos );
+
+     frag_color = keyPhong + fillPhong + backPhong;
+}
 
 
-  	
-  	float diffuse = max(dot(vNorm, vLightvec), 0.0);;
-  	
-  	vec4 Kd = lightColor * diffuse;
 
-  	vec3 viewDir = normalize(vLightvec - vPos);
-	  vec3 reflectDir = reflect(-vLightvec, vNorm);
-	  float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-	  vec4 specular =  0.8 * spec * lightColor;  
 
-  	frag_colour = ( Ka + Kd +specular ) * vec4(color, 1.0);
-   
+
+vec4 phong( vec4 lightColor, vec3 lightVector, vec3 point, vec3 pointNorm, vec4 modelC, vec3 camPos  )
+{
+
+  vec4 Ka = ambientStren * lightColor;
+
+  normalize( pointNorm );
+  normalize( lightVector );
+  float diffuse = max(dot(pointNorm, lightVector), 0.0);
+  vec4 Kd = lightColor * diffuse * diffuseSten;
+  
+
+  vec3 viewDir = normalize(camPos - vPos);
+  vec3 reflectDir = normalize( reflect(-lightVector, pointNorm) );
+  float spec = pow(max(dot(viewDir, reflectDir), 0.0), 10);
+  vec4 Ks =  specularSten * spec * lightColor;  
+
+  return ( ( Ka + Kd + Ks ) * modelC ); //need change for multi light
 
 }
+
+
+

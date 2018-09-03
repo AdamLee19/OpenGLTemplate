@@ -2,7 +2,7 @@ CC = g++
 CPP = cpp 
 H = h
 CPPFLAGS = -DAPPLE -Wall -std=c++11 -g
-FRAMEWORKS = -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo -lglfw3 -lGLEW
+FRAMEWORKS = -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo -lglfw3 -lGLEW -framework OpenGL -framework GLUT
 PROJECT = template
 
 HFILES = Model.${H} View.${H} Camera.${H}

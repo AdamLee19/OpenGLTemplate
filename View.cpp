@@ -9,20 +9,24 @@
 
 
 
+
+
 enum VAO_IDs { Teapot, NumVAOs };
 enum Buffer_IDs { PointBuffer, PointNormalBuffer, NumBuffers };
 
 GLuint VAOs[ NumVAOs ];
 GLuint Buffers[ NumBuffers ];
+GLuint test,vaotest;
 
                             
 GLuint shader_programme;
 
 
-float InitBackGroundColor[4] = { 0.5, 0.5, 0.5, 1.0 };
+float InitBackGroundColor[4] = { 0.62, 0.62, 0.62, 1.0 };
 
 
 Model teapot("teapot.obj");
+
 
 View :: View() : InitWindow_W(WINDOW_W), InitWindow_H( WINDOW_H ), camera( nullptr )
 {
@@ -77,10 +81,14 @@ void View :: initList()
 
 	glBindBuffer( GL_ARRAY_BUFFER, Buffers[PointNormalBuffer]);
 	glBufferData( GL_ARRAY_BUFFER, teapot.getPointCount() * sizeof( float ) * 3, teapot.getNormals(), GL_STATIC_DRAW );
+
+
+
 	
 
 	glGenVertexArrays( NumVAOs, &VAOs[Teapot] );
 	glBindVertexArray( VAOs[Teapot] );
+
 
 	//Active VAO, Bind VBO to VAO
 	glEnableVertexAttribArray( 0 );
@@ -92,12 +100,51 @@ void View :: initList()
 	glVertexAttribPointer( PointNormalBuffer, 3, GL_FLOAT, GL_TRUE, 0, NULL );
 
 	
+
+
+
+	
 	vertNum = glCreateShader( GL_VERTEX_SHADER );
 	glShaderSource( vertNum, 1, &v, NULL );
 	glCompileShader( vertNum );
+
+	GLint success = 0;
+	glGetShaderiv(vertNum, GL_COMPILE_STATUS, &success);
+	if ( success == GL_FALSE )
+	{
+		GLint logSize = 0;
+
+		glGetShaderiv( vertNum, GL_INFO_LOG_LENGTH, &logSize);
+		GLchar errorLog[ logSize ];
+		glGetShaderInfoLog(vertNum, logSize, &logSize, &errorLog[0]);
+		std::cout << std::endl << "ERROR: Vertex Shader: "<< errorLog << std::endl;
+		glDeleteShader(vertNum);
+		exit( 1 );
+	}
+	
 	fragNum = glCreateShader( GL_FRAGMENT_SHADER );
+
 	glShaderSource( fragNum, 1, &f, NULL );
 	glCompileShader( fragNum );
+
+	success = 0;
+	glGetShaderiv(fragNum, GL_COMPILE_STATUS, &success);
+
+	if ( success == GL_FALSE )
+	{
+		GLint logSize = 0;
+
+		glGetShaderiv( fragNum, GL_INFO_LOG_LENGTH, &logSize);
+		GLchar errorLog[ logSize ];
+		glGetShaderInfoLog(fragNum, logSize, &logSize, &errorLog[0]);
+		std::cout << std::endl << "ERROR: Fragment Shader: "<< errorLog << std::endl;
+		glDeleteShader(fragNum);
+		exit( 1 );
+	}
+
+
+
+
 	shader_programme = glCreateProgram();
 	glAttachShader( shader_programme, fragNum );
 	glAttachShader( shader_programme, vertNum );
@@ -138,7 +185,17 @@ void View :: display()
 	int view_mat_location = glGetUniformLocation (shader_programme, "view_mat");
 	int proj_mat_location = glGetUniformLocation (shader_programme, "proj_mat");
 	int model_mat_location = glGetUniformLocation (shader_programme, "model_mat");
-	int model_color = glGetUniformLocation (shader_programme, "color");
+
+
+
+	int model_color = glGetUniformLocation (shader_programme, "model_color");
+	int camera_pos = glGetUniformLocation (shader_programme, "uCamPos");
+	int key_light_pos = glGetUniformLocation( shader_programme, "uKeyLightPos");
+	int key_light_color = glGetUniformLocation( shader_programme, "uKeyLightColor");
+	int fill_light_pos = glGetUniformLocation( shader_programme, "uFillLightPos");
+	int fill_light_color = glGetUniformLocation( shader_programme, "uFillLightColor");
+	int back_light_pos = glGetUniformLocation( shader_programme, "uBackLightPos");
+	int back_light_color = glGetUniformLocation( shader_programme, "uBackLightColor"); 
 	//std::cout << model_color << std::endl;
 
 	
@@ -148,9 +205,16 @@ void View :: display()
 	glUniformMatrix4fv (proj_mat_location, 1, GL_FALSE,  glm::value_ptr(proj));
 	glUniformMatrix4fv (model_mat_location, 1, GL_FALSE,  glm::value_ptr(model));
 
-	glUniform3fv ( model_color, 1, glm::value_ptr(teapot.getColor() ) );
-	//std::cout << teapot.getColor()[0] << std::endl;
+	glUniform4fv ( model_color, 1, glm::value_ptr(teapot.getColor() ) );
+	glUniform3fv( camera_pos, 1, glm::value_ptr( camera ->getPos() ) );
+	glUniform3fv( key_light_pos, 1, glm::value_ptr( camera -> getLightPos( 'k' ) ) );
+	glUniform4fv( key_light_color, 1, glm::value_ptr( camera ->getLightColor( 'k' ) ) );
+	glUniform3fv( fill_light_pos, 1, glm::value_ptr( camera -> getLightPos( 'f' ) ) );
+	glUniform4fv( fill_light_color, 1, glm::value_ptr( camera ->getLightColor('f') ) );
+	glUniform3fv( back_light_pos, 1, glm::value_ptr( camera -> getLightPos( 'b' ) ) );
+	glUniform4fv( back_light_color, 1, glm::value_ptr( camera ->getLightColor('b') ) );
 
+	
 
 
 
@@ -160,10 +224,20 @@ void View :: display()
 	glDrawArrays(GL_TRIANGLES, 0, teapot.getPointCount() );
 
 
+
+
+
+
 	//std::cout <<  << std::endl;
 
 
 
+}
+void View :: handleKeyBoard( int key, int action )
+{
+
+	camera -> handleKeyBoard( key, action );
+	
 }
 
 void View :: handleMouseButtons(int button, int action, double x, double y)

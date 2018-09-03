@@ -7,8 +7,6 @@
 
 
 GLFWwindow* window = NULL;
-//const GLFWvidmode* mode = NULL;
-//GLFWmonitor* monitor = NULL;
 const char *WINDOWTITLE = {"OpenGL/Template"};
 
 View Object;
@@ -116,6 +114,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
       	glfwDestroyWindow( window );
 		glfwTerminate();
 		exit(0);
+    }
+    else
+    {
+    	Object.handleKeyBoard( key, action );
     }
 }
 

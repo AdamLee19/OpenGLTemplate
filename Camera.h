@@ -4,6 +4,31 @@
 #ifndef __CAMERA_H__
 #define __CAMERA_H__ 
 
+
+
+class Light
+{
+private:
+	glm::vec3 Pos;
+	glm::vec4 Color;
+	bool LightSwitch;
+	glm::vec4 onColor;
+	glm::vec4 offColor;
+public:
+	Light( glm::vec3 p, glm::vec4 c ) : Pos( p ), Color( c ) { onColor = c; offColor = glm::vec4( 0.0, 0.0, 0.0, 1.0); \
+		LightSwitch = true; }
+	glm::vec3 &getPos() { return Pos; }
+	glm::vec4 &getColor() { return Color;}
+	bool &getLightSwitch(){ return LightSwitch; }
+	glm::vec4 getOffColor() const {return offColor; }
+	glm::vec4 getOnColor() const {return onColor; }
+
+	//Use Template Later;
+	void setPos( glm::vec3 p ) { Pos = p; }
+	
+
+};
+
 class Camera
 {
 private:
@@ -28,8 +53,10 @@ private:
   	const float zfar;
 
 
-  	glm::vec3 KeyLightPos;
+  	Light *KeyLight;
 
+  	Light *FillLight;
+  	Light *BackLight;
 
 public:
 	Camera();
@@ -42,7 +69,11 @@ public:
 	void handleMouseButtons(int button, int action, double x, double y);
 	void handleMouseMove( double x, double y );
 	void handleMouseRoll( double y );
+	void handleKeyBoard( int key, int action );
 
+
+	glm::vec3 getLightPos( char light );
+	glm::vec4 &getLightColor( char light );
 
 };
 

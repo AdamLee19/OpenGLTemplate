@@ -7,14 +7,14 @@ using namespace std;
 Model :: Model()
 {
 
-	color = glm::vec3( 67., 239., 233. ) / 255.f;
-	load_obj_file( "teapot.obj" );
+	color = glm::vec4( 67.f / 255.f , 239.f / 255.f , 233.f / 255.f, 1.0f ) ;
+	load_obj_file( "sphere.obj" );
 	loadShader();
 }
 
 Model :: Model( const char * file_name )
 {
-	color = glm::vec3( 67.f, 239.f, 233.f ) / 255.f;
+	color = glm::vec4( 67.f / 255.f , 239.f / 255.f , 233.f / 255.f, 1.0f );
 	load_obj_file( file_name );
 	loadShader();
 }
