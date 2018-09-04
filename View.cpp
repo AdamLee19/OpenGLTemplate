@@ -25,7 +25,7 @@ GLuint shader_programme;
 float InitBackGroundColor[4] = { 0.62, 0.62, 0.62, 1.0 };
 
 
-Model teapot("teapot.obj");
+Model teapot("sphere.obj");
 
 
 View :: View() : InitWindow_W(WINDOW_W), InitWindow_H( WINDOW_H ), camera( nullptr )
@@ -154,15 +154,7 @@ void View :: initList()
 
 void View :: display()
 {
-	GLsizei vx = CurrentWindow_W;
-	GLsizei vy = CurrentWindow_H;
-	GLsizei v = vx < vy ? vx : vy;
 
-	GLint xl = ( vx - v ) / 2;
-	GLint yb = ( vy - v ) / 2;
-	
-
-	glViewport( xl, yb, v, v );
 
 
 
