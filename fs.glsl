@@ -20,19 +20,37 @@ float diffuseSten = 0.8;
 float specularSten = 0.5;
 
 vec4 phong( vec4 lightColor, vec3 lightVector, vec3 point, vec3 pointNorm, vec4 modelC, vec3 camPos );
+vec4 blinn_phong( vec4 lightColor, vec3 lightVector, vec3 point, vec3 pointNorm, vec4 modelC, vec3 camPos );
 void main () {
 
 
-     vec4 keyPhong = phong( uKeyLightColor, vKeyLightNorm, vPos, vNorm, model_color, uCamPos );
-     vec4 fillPhong = phong( uFillLightColor, vFillLightNorm, vPos, vNorm, model_color, uCamPos );
-     vec4 backPhong = phong( uBackLightColor, vBackLightNorm, vPos, vNorm, model_color, uCamPos );
+     vec4 keyPhong = blinn_phong( uKeyLightColor, vKeyLightNorm, vPos, vNorm, model_color, uCamPos );
+     vec4 fillPhong = blinn_phong( uFillLightColor, vFillLightNorm, vPos, vNorm, model_color, uCamPos );
+     vec4 backPhong = blinn_phong( uBackLightColor, vBackLightNorm, vPos, vNorm, model_color, uCamPos );
 
      frag_color = keyPhong + fillPhong + backPhong;
 }
 
 
 
+vec4 blinn_phong( vec4 lightColor, vec3 lightVector, vec3 point, vec3 pointNorm, vec4 modelC, vec3 camPos )
+{
+  
+  vec4 Ka = ambientStren * lightColor;
 
+  normalize( pointNorm );
+  normalize( lightVector );
+  float diffuse = max(dot(pointNorm, lightVector), 0.0);
+  vec4 Kd = lightColor * diffuse * diffuseSten;
+
+  vec3 halfway = normalize(camPos + lightVector);
+  vec3 reflectDir = normalize( reflect(-lightVector, pointNorm) );
+  float spec = pow(max(dot(halfway, pointNorm), 0.0), 10);
+  vec4 Ks =  specularSten * spec * lightColor;  
+
+  return ( ( Ka + Kd + Ks ) * modelC ); //need change for multi light
+
+}
 
 vec4 phong( vec4 lightColor, vec3 lightVector, vec3 point, vec3 pointNorm, vec4 modelC, vec3 camPos  )
 {
@@ -47,7 +65,7 @@ vec4 phong( vec4 lightColor, vec3 lightVector, vec3 point, vec3 pointNorm, vec4 
 
   vec3 viewDir = normalize(camPos - vPos);
   vec3 reflectDir = normalize( reflect(-lightVector, pointNorm) );
-  float spec = pow(max(dot(viewDir, reflectDir), 0.0), 10);
+  float spec = pow(max(dot(viewDir, reflectDir), 0.0), 100);
   vec4 Ks =  specularSten * spec * lightColor;  
 
   return ( ( Ka + Kd + Ks ) * modelC ); //need change for multi light

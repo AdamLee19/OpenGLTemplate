@@ -1,4 +1,5 @@
 #include <glm/glm.hpp>
+#include <GL/glew.h>
 #ifndef __MODEL_H__
 #define __MODEL_H__ 
 
@@ -16,6 +17,10 @@ private:
     float *textCoords;
 	int pointCount;
 
+	GLuint Buffers[ 3 ];
+	GLuint shaderProgram;
+
+
 	glm::vec4 color;
 	
 	bool load_obj_file( const char *file_name );
@@ -30,6 +35,9 @@ public:
 	float* getNormals() const { return normals;}
 	int getPointCount() const {return pointCount;}
 	glm::vec4 getColor() const{ return color;}
+
+	GLuint &getShaderProgram() { return shaderProgram; }
+	GLuint* getBuffers(){ return Buffers; }
 };
 
 

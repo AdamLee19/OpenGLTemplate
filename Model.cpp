@@ -7,16 +7,22 @@ using namespace std;
 Model :: Model()
 {
 
-	color = glm::vec4( 67.f / 255.f , 239.f / 255.f , 233.f / 255.f, 1.0f ) ;
+	color = glm::vec4( 0.26f, 0.94f, 0.91f, 1.0f ) ;
 	load_obj_file( "sphere.obj" );
 	loadShader();
+	Buffers[0] = -1;
+	Buffers[1] = -1;
+	Buffers[2] = -1;
 }
 
 Model :: Model( const char * file_name )
 {
-	color = glm::vec4( 67.f / 255.f , 239.f / 255.f , 233.f / 255.f, 1.0f );
+	color = glm::vec4( 0.26f, 0.94f, 0.91f, 1.0f );
 	load_obj_file( file_name );
 	loadShader();
+	Buffers[0] = -1;
+	Buffers[1] = -1;
+	Buffers[2] = -1;
 }
 
 bool Model :: load_obj_file( const char *file_name ) 

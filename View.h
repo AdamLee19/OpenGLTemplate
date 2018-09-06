@@ -1,5 +1,6 @@
 #include "Camera.h"
-#include <GL/glew.h>
+#include "Model.h"
+
 #include <glm/glm.hpp>
 
 #ifndef __VIEW_H__
@@ -23,9 +24,9 @@ private:
 
 	float *backgroundcolor;
 
-	glm::mat4 proj;
-	glm::mat4 view;
-	glm::mat4 model;
+	glm::mat4 proj_mat;
+	glm::mat4 view_mat;
+	glm::mat4 model_mat;
 	
 public:
 	View();
@@ -39,6 +40,9 @@ public:
 	void handleMouseMove( double x, double y );
 	void handleMouseRoll( double y );
 	void handleKeyBoard( int key, int action );
+	void dataPrepare( Model & );
+	void sendToShader( Model& model );
+
 	
 };
 

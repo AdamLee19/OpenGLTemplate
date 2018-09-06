@@ -12,21 +12,20 @@
 
 
 enum VAO_IDs { Teapot, NumVAOs };
-enum Buffer_IDs { PointBuffer, PointNormalBuffer, NumBuffers };
+enum Buffer_IDs { PointBuffer, PointNormalBuffer, PointColor, NumBuffers };
 
 GLuint VAOs[ NumVAOs ];
-GLuint Buffers[ NumBuffers ];
-GLuint test,vaotest;
+
 
                             
-GLuint shader_programme;
+
 
 
 float InitBackGroundColor[4] = { 0.62, 0.62, 0.62, 1.0 };
 
 
-Model teapot("sphere.obj");
-
+Model teapot("teapot.obj");
+GLuint teapotShader;
 
 View :: View() : InitWindow_W(WINDOW_W), InitWindow_H( WINDOW_H ), camera( nullptr )
 {
@@ -38,9 +37,9 @@ View :: View() : InitWindow_W(WINDOW_W), InitWindow_H( WINDOW_H ), camera( nullp
 	camera = new Camera();
 	backgroundcolor = InitBackGroundColor;
 
-	proj =  glm::perspective(glm::radians(camera -> getFovy()), (float)CurrentWindow_W/(float)CurrentWindow_H, camera -> getZnear(), camera -> getZfar());
-	view = glm::lookAt( camera -> getPos(), camera -> getForw(), camera -> getUp() );
-	model = glm::mat4(1.0);
+	proj_mat =  glm::perspective(glm::radians(camera -> getFovy()), (float)CurrentWindow_W/(float)CurrentWindow_H, camera -> getZnear(), camera -> getZfar());
+	view_mat = glm::lookAt( camera -> getPos(), camera -> getForw(), camera -> getUp() );
+	model_mat = glm::mat4(1.0);
 	
 	
 }
@@ -67,43 +66,28 @@ void View :: reshapeWindow( int w, int h )
   	 glViewport(x0, y0, CurrentWindow_W, CurrentWindow_H);
 }
 
-
-void View :: initList()
+void View :: dataPrepare( Model& model )
 {
 	GLuint vertNum, fragNum;
-	const char*v = teapot.getVertShad();
-	const char*f = teapot.getFragShad();
-	
+	const char*v = model.getVertShad();
+	const char*f = model.getFragShad();
 
-	glGenBuffers( NumBuffers,Buffers );
-	glBindBuffer( GL_ARRAY_BUFFER, Buffers[PointBuffer] );
-	glBufferData( GL_ARRAY_BUFFER, teapot.getPointCount() * sizeof( float ) * 3, teapot.getPoints(), GL_STATIC_DRAW );
-
-	glBindBuffer( GL_ARRAY_BUFFER, Buffers[PointNormalBuffer]);
-	glBufferData( GL_ARRAY_BUFFER, teapot.getPointCount() * sizeof( float ) * 3, teapot.getNormals(), GL_STATIC_DRAW );
+	glGenBuffers( NumBuffers, model.getBuffers() );
+	glBindBuffer( GL_ARRAY_BUFFER, *(model.getBuffers() + PointBuffer) );
+	glBufferData( GL_ARRAY_BUFFER, model.getPointCount() * sizeof( float ) * 3, model.getPoints(), GL_STATIC_DRAW );
+	glBindBuffer( GL_ARRAY_BUFFER, *(model.getBuffers() + PointNormalBuffer) );
+	glBufferData( GL_ARRAY_BUFFER, model.getPointCount() * sizeof( float ) * 3, model.getNormals(), GL_STATIC_DRAW );
 
 
-
-	
-
-	glGenVertexArrays( NumVAOs, &VAOs[Teapot] );
-	glBindVertexArray( VAOs[Teapot] );
-
-
-	//Active VAO, Bind VBO to VAO
 	glEnableVertexAttribArray( 0 );
-	glBindBuffer( GL_ARRAY_BUFFER, Buffers[PointBuffer] );
+	glBindBuffer( GL_ARRAY_BUFFER, *(model.getBuffers() + PointBuffer) );
 	glVertexAttribPointer( PointBuffer, 3, GL_FLOAT, GL_FALSE, 0, NULL );
-	
+
 	glEnableVertexAttribArray( 1 );
-	glBindBuffer( GL_ARRAY_BUFFER, Buffers[PointNormalBuffer]);
+	glBindBuffer( GL_ARRAY_BUFFER, *(model.getBuffers() + PointNormalBuffer) );
 	glVertexAttribPointer( PointNormalBuffer, 3, GL_FLOAT, GL_TRUE, 0, NULL );
 
-	
 
-
-
-	
 	vertNum = glCreateShader( GL_VERTEX_SHADER );
 	glShaderSource( vertNum, 1, &v, NULL );
 	glCompileShader( vertNum );
@@ -145,10 +129,61 @@ void View :: initList()
 
 
 
-	shader_programme = glCreateProgram();
-	glAttachShader( shader_programme, fragNum );
-	glAttachShader( shader_programme, vertNum );
-	glLinkProgram( shader_programme );	
+	model.getShaderProgram() = glCreateProgram();
+	glAttachShader( model.getShaderProgram(), fragNum );
+	glAttachShader( model.getShaderProgram(), vertNum );
+	glLinkProgram( model.getShaderProgram() );
+
+	
+
+}
+void View ::sendToShader( Model& model)
+{
+	glUseProgram( teapot.getShaderProgram() );
+	proj_mat =  glm::perspective(glm::radians(camera -> getFovy()), (float)CurrentWindow_W/(float)CurrentWindow_H, camera -> getZnear(), camera -> getZfar());
+	
+	//2nd prameter is actually look at a position. Not forward vector;
+	view_mat = glm::lookAt( camera -> getPos(), camera -> getForw() + camera -> getPos(), camera -> getUp() );
+	model_mat = glm::translate(model_mat, glm::vec3(0.0f, 0.0f, 0.0f));
+	int view_mat_location = glGetUniformLocation (model.getShaderProgram(), "view_mat");
+	int proj_mat_location = glGetUniformLocation (model.getShaderProgram(), "proj_mat");
+	int model_mat_location = glGetUniformLocation (model.getShaderProgram(), "model_mat");
+
+
+
+	int model_color = glGetUniformLocation (model.getShaderProgram(), "model_color");
+	int camera_pos = glGetUniformLocation (model.getShaderProgram(), "uCamPos");
+	int key_light_pos = glGetUniformLocation( model.getShaderProgram(), "uKeyLightPos");
+	int key_light_color = glGetUniformLocation( model.getShaderProgram(), "uKeyLightColor");
+	int fill_light_pos = glGetUniformLocation( model.getShaderProgram(), "uFillLightPos");
+	int fill_light_color = glGetUniformLocation( model.getShaderProgram(), "uFillLightColor");
+	int back_light_pos = glGetUniformLocation( model.getShaderProgram(), "uBackLightPos");
+	int back_light_color = glGetUniformLocation( model.getShaderProgram(), "uBackLightColor"); 
+	//std::cout << model_color << std::endl;
+
+	
+
+	//1 represents 1 matrix, GL_FALSE represents transpose
+	glUniformMatrix4fv (view_mat_location, 1, GL_FALSE,  glm::value_ptr(view_mat));
+	glUniformMatrix4fv (proj_mat_location, 1, GL_FALSE,  glm::value_ptr(proj_mat));
+	glUniformMatrix4fv (model_mat_location, 1, GL_FALSE,  glm::value_ptr(model_mat));
+
+	glUniform4fv ( model_color, 1, glm::value_ptr(teapot.getColor() ) );
+	glUniform3fv( camera_pos, 1, glm::value_ptr( camera ->getPos() ) );
+	glUniform3fv( key_light_pos, 1, glm::value_ptr( camera -> getLightPos( 'k' ) ) );
+	glUniform4fv( key_light_color, 1, glm::value_ptr( camera ->getLightColor( 'k' ) ) );
+	glUniform3fv( fill_light_pos, 1, glm::value_ptr( camera -> getLightPos( 'f' ) ) );
+	glUniform4fv( fill_light_color, 1, glm::value_ptr( camera ->getLightColor('f') ) );
+	glUniform3fv( back_light_pos, 1, glm::value_ptr( camera -> getLightPos( 'b' ) ) );
+	glUniform4fv( back_light_color, 1, glm::value_ptr( camera ->getLightColor('b') ) );
+}
+
+void View :: initList()
+{	
+
+	glGenVertexArrays( NumVAOs, &VAOs[Teapot] );
+	glBindVertexArray( VAOs[Teapot] );
+	dataPrepare( teapot );
 	
 }
 
@@ -160,67 +195,27 @@ void View :: display()
 
 	glEnable (GL_DEPTH_TEST); 
 	glDepthFunc (GL_LESS); 
-	// glEnable (GL_CULL_FACE); 
-	// glCullFace (GL_FRONT); 
-	// glFrontFace (GL_CW);
+	
 
 	glClearColor( backgroundcolor[0],backgroundcolor[1], backgroundcolor[2], backgroundcolor[3] );
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUseProgram( shader_programme );
-	proj =  glm::perspective(glm::radians(camera -> getFovy()), (float)CurrentWindow_W/(float)CurrentWindow_H, camera -> getZnear(), camera -> getZfar());
-	
-	//2nd prameter is actually look at a position. Not forward vector;
-	view = glm::lookAt( camera -> getPos(), camera -> getForw() + camera -> getPos(), camera -> getUp() );
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-
-	int view_mat_location = glGetUniformLocation (shader_programme, "view_mat");
-	int proj_mat_location = glGetUniformLocation (shader_programme, "proj_mat");
-	int model_mat_location = glGetUniformLocation (shader_programme, "model_mat");
-
-
-
-	int model_color = glGetUniformLocation (shader_programme, "model_color");
-	int camera_pos = glGetUniformLocation (shader_programme, "uCamPos");
-	int key_light_pos = glGetUniformLocation( shader_programme, "uKeyLightPos");
-	int key_light_color = glGetUniformLocation( shader_programme, "uKeyLightColor");
-	int fill_light_pos = glGetUniformLocation( shader_programme, "uFillLightPos");
-	int fill_light_color = glGetUniformLocation( shader_programme, "uFillLightColor");
-	int back_light_pos = glGetUniformLocation( shader_programme, "uBackLightPos");
-	int back_light_color = glGetUniformLocation( shader_programme, "uBackLightColor"); 
-	//std::cout << model_color << std::endl;
-
-	
-
-	//1 represents 1 matrix, GL_FALSE represents transpose
-	glUniformMatrix4fv (view_mat_location, 1, GL_FALSE,  glm::value_ptr(view));
-	glUniformMatrix4fv (proj_mat_location, 1, GL_FALSE,  glm::value_ptr(proj));
-	glUniformMatrix4fv (model_mat_location, 1, GL_FALSE,  glm::value_ptr(model));
-
-	glUniform4fv ( model_color, 1, glm::value_ptr(teapot.getColor() ) );
-	glUniform3fv( camera_pos, 1, glm::value_ptr( camera ->getPos() ) );
-	glUniform3fv( key_light_pos, 1, glm::value_ptr( camera -> getLightPos( 'k' ) ) );
-	glUniform4fv( key_light_color, 1, glm::value_ptr( camera ->getLightColor( 'k' ) ) );
-	glUniform3fv( fill_light_pos, 1, glm::value_ptr( camera -> getLightPos( 'f' ) ) );
-	glUniform4fv( fill_light_color, 1, glm::value_ptr( camera ->getLightColor('f') ) );
-	glUniform3fv( back_light_pos, 1, glm::value_ptr( camera -> getLightPos( 'b' ) ) );
-	glUniform4fv( back_light_color, 1, glm::value_ptr( camera ->getLightColor('b') ) );
-
 	
 
 
+	
+
+	sendToShader(teapot);
 
 
-	glUseProgram( shader_programme );
+
+
+	glUseProgram( teapot.getShaderProgram() );
 	glBindVertexArray(VAOs[Teapot]);
 	glDrawArrays(GL_TRIANGLES, 0, teapot.getPointCount() );
 
 
 
-
-
-
-	//std::cout <<  << std::endl;
 
 
 
