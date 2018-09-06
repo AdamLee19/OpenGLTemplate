@@ -45,7 +45,7 @@ vec4 blinn_phong( vec4 lightColor, vec3 lightVector, vec3 point, vec3 pointNorm,
 
   vec3 halfway = normalize(camPos + lightVector);
   vec3 reflectDir = normalize( reflect(-lightVector, pointNorm) );
-  float spec = pow(max(dot(halfway, pointNorm), 0.0), 10);
+  float spec = pow(max(dot(halfway, reflectDir), 0.0), 10);
   vec4 Ks =  specularSten * spec * lightColor;  
 
   return ( ( Ka + Kd + Ks ) * modelC ); //need change for multi light
